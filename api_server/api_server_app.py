@@ -1,9 +1,13 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
-from masterblog_core import Blog
+from masterblog_core import Blog, Post
 from api_server_config import BLOG_FILE_PATH, SEQUENCE_FILE_PATH
 
 MANDATORY_FIELDS = {"author", "title", "content"}
+POST_NOT_FOUND_RESPONSE = {"error": "Not Found",
+                           "message": "Post with id '{post_id}' not found.",
+                           "status": 404
+                           }
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
@@ -22,7 +26,11 @@ def get_posts():
 
 @app.route("/api/add", methods=["POST"])
 def add():
-    """Provide API endpoint for adding a post."""
+    """Provide API endpoint for adding a post.
+
+    On success return JSON with the added post and status 201,
+    otherwise error message and status 400.
+    """
     new_post = request.get_json()
     missing_fields = []
     # Check for presence of mandatory fields
@@ -41,18 +49,46 @@ def add():
 
 @app.route("/api/posts/<int:post_id>", methods=["DELETE"])
 def delete(post_id):
-    """Provide API endpoint to delete a post."""
+    """Provide API endpoint to delete a post.
+
+    Return success message and status 200
+    otherwise error message and status 404.
+    """
     post_obj = get_post_obj(post_id)
     if post_obj is not None:
         my_blog.delete(post_obj)
         success_message = f"Post with id {post_id} has been deleted successfully."
         return jsonify(success_message), 200
     # Respond with custom 404 error if post does not exist
-    response = {
-        "error": "Not Found",
-        "message": f"Post with id '{post_id}' not found.",
-        "status": 404
-    }
+    response = POST_NOT_FOUND_RESPONSE.copy()
+    response["message"] = response["message"].format(post_id=post_id)
+    return jsonify(response), 404
+
+
+@app.route("/api/posts/<int:post_id>", methods=["PUT"])
+def update(post_id):
+    """Provide API endpoint to update a post.
+
+    Return success message and status 200
+    otherwise error message and status 404.
+    """
+    updated_fields = {}
+    post_obj = get_post_obj(post_id)
+    if post_obj is not None:
+        post_data_raw = request.get_json()
+        # Handle empty or missing fields
+        title = post_data_raw.get("title") or None
+        content = post_data_raw.get("content") or None
+        # Only pass title and content to the update method
+        if title is not None:
+            updated_fields["title"] = title
+        if content is not None:
+            updated_fields["content"] = content
+        my_blog.update(post_id=post_id, **updated_fields)
+        return jsonify(post_obj.get()), 200
+    # Respond with custom 404 error if post does not exist
+    response = POST_NOT_FOUND_RESPONSE.copy()
+    response["message"] = response["message"].format(post_id=post_id)
     return jsonify(response), 404
 
 
@@ -65,6 +101,16 @@ def page_not_found(error):
         "error": "Not Found",
         "message": "The requested ressource does not exist.",
         "status": 404
+    }
+    return jsonify(response), 404
+
+
+@app.errorhandler(400)
+def page_not_found(error):
+    response = {
+        "error": "Bad Request",
+        "message": "Failed to decode JSON object.",
+        "status": 400
     }
     return jsonify(response), 404
 
