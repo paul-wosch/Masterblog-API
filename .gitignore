@@ -1,5 +1,5 @@
 # JSON data
-data/*.json
+api_server/data/*.json
 
 # MacOS hidden system file from finder application
 .DS_Store

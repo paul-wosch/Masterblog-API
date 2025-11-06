@@ -1,18 +1,16 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from masterblog_core import Blog
+from api_server_config import BLOG_FILE_PATH, SEQUENCE_FILE_PATH
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 
-POSTS = [
-    {"id": 1, "title": "First post", "content": "This is the first post."},
-    {"id": 2, "title": "Second post", "content": "This is the second post."},
-]
-
+my_blog = Blog(blog_file_path=BLOG_FILE_PATH, seq_file_path=SEQUENCE_FILE_PATH)
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
-    return jsonify(POSTS)
+    return jsonify(my_blog.get_posts())
 
 
 if __name__ == '__main__':
