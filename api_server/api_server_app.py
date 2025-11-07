@@ -1,9 +1,13 @@
+from operator import itemgetter
+
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
 from masterblog_core import Blog, Post
 from api_server_config import BLOG_FILE_PATH, SEQUENCE_FILE_PATH
 
 MANDATORY_FIELDS = {"author", "title", "content"}
+SORT_FIELDS = MANDATORY_FIELDS
+SORT_DIRECTIONS = {"asc": False, "desc": True}
 POST_NOT_FOUND_RESPONSE = {"error": "Not Found",
                            "message": "Post with id '{post_id}' not found.",
                            "status": 404
@@ -20,8 +24,47 @@ my_blog = Blog(blog_file_path=BLOG_FILE_PATH, seq_file_path=SEQUENCE_FILE_PATH)
 # ---------------------------------------------------------------------
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
-    """Provide API endpoint to retrieve all posts."""
-    return jsonify(my_blog.get_posts())
+    """Provide API endpoint to retrieve all posts.
+
+    Sort posts when the request contains
+    optional 'sort' or 'direction' param.
+    """
+    valid_request = True
+    should_sort = False
+    is_reverse_order = False
+    error_msg = "Invalid param value(s):"
+    posts = my_blog.get_posts()
+    # -----------------------------------------------------------------
+    # Extract value for 'sort' and 'direction' params
+    if (sort_field := request.args.get("sort")):
+        should_sort = True
+    sort_direction = request.args.get("direction")
+    # -----------------------------------------------------------------
+    # Validate 'sort' and 'direction' param
+    if should_sort is True and not sort_field in SORT_FIELDS:
+        valid_request = False
+        should_sort = False
+        error_msg += f" 'sort={sort_field}'"
+    if sort_direction and not sort_direction in SORT_DIRECTIONS:
+        valid_request = False
+        should_sort = False
+        error_msg += f" 'direction={sort_direction}'"
+    elif sort_direction:
+        is_reverse_order = SORT_DIRECTIONS[sort_direction]
+    # -----------------------------------------------------------------
+    # Return error message for invalid 'sort' or 'direction' param
+    if not valid_request:
+        response = {
+            "error": "Bad Request",
+            "message": error_msg,
+            "status": 400
+        }
+        return jsonify(response), 400
+    # -----------------------------------------------------------------
+    # Sort and / or return posts.
+    if should_sort is True:
+        posts = sort_posts(posts, sort_field, is_reverse_order)
+    return jsonify(posts)
 
 
 @app.route("/api/add", methods=["POST"])
@@ -150,6 +193,13 @@ def filter_posts(posts,  title="", content="", author=""):
                       and author.lower() in post.get("author").lower()
                       ]
     return posts_filtered
+
+
+def sort_posts(posts, field, reverse=False):
+    """Sort posts by the given field in ascending or descending order."""
+    posts_sorted = list(sorted(posts, key=itemgetter(field.lower()), reverse=reverse))
+    return posts_sorted
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5002, debug=True)
