@@ -2,9 +2,14 @@ from operator import itemgetter
 
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
+from flask_swagger_ui import get_swaggerui_blueprint
+
 from masterblog_core import Blog, Post
 from api_server_config import BLOG_FILE_PATH, SEQUENCE_FILE_PATH
 
+# ---------------------------------------------------------------------
+# Define global constants
+# ---------------------------------------------------------------------
 POST_KEY_ORDER = ["id", "title", "content", "author", "likes"]
 MANDATORY_FIELDS = {"author", "title", "content"}
 SORT_FIELDS = MANDATORY_FIELDS
@@ -14,10 +19,31 @@ POST_NOT_FOUND_RESPONSE = {"error": "Not Found",
                            "status": 404
                            }
 
+# ---------------------------------------------------------------------
+# Flask server configuration and instantiation
+# ---------------------------------------------------------------------
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 app.json.sort_keys = False # Deactivate alphabetical key sort
 
+# ---------------------------------------------------------------------
+# Flask Swagger UI configuration and instantiation
+# ---------------------------------------------------------------------
+SWAGGER_URL = "/api/docs"
+API_URL = "/static/masterblog.json"
+
+swagger_ui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': 'Masterblog API'
+    }
+)
+app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
+
+# ---------------------------------------------------------------------
+# Create blog instance
+# ---------------------------------------------------------------------
 my_blog = Blog(blog_file_path=BLOG_FILE_PATH, seq_file_path=SEQUENCE_FILE_PATH)
 
 
