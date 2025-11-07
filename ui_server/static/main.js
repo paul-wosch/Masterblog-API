@@ -27,8 +27,12 @@ function loadPosts() {
             data.forEach(post => {
                 const postDiv = document.createElement('div');
                 postDiv.className = 'post';
-                postDiv.innerHTML = `<h2>${post.title}</h2><p>${post.content}</p>
-                <button onclick="deletePost(${post.id})">Delete</button>`;
+                postDiv.innerHTML = `<h2>${post.title}</h2>`;
+                postDiv.innerHTML += `<p><em>Written by ${post.author}</em></p>`;
+                postDiv.innerHTML += `<p>${post.content}</p>`;
+                postDiv.innerHTML += `<p class="likes-counter">${post.likes}</p>`;
+                postDiv.innerHTML += `<button id="delete-button" onclick="deletePost(${post.id})">Delete</button>`;
+                postDiv.innerHTML += `<button id="like-button" onclick="likePost(${post.id})">Like</button>`;
                 postContainer.appendChild(postDiv);
             });
         })
@@ -41,12 +45,13 @@ function addPost() {
     var baseUrl = document.getElementById('api-base-url').value;
     var postTitle = document.getElementById('post-title').value;
     var postContent = document.getElementById('post-content').value;
+    var postAuthor = document.getElementById('post-author').value;
 
     // Use the Fetch API to send a POST request to the /posts endpoint
-    fetch(baseUrl + '/posts', {
+    fetch(baseUrl + '/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: postTitle, content: postContent })
+        body: JSON.stringify({ title: postTitle, content: postContent, author: postAuthor })
     })
     .then(response => response.json())  // Parse the JSON data from the response
     .then(post => {
@@ -67,6 +72,21 @@ function deletePost(postId) {
     .then(response => {
         console.log('Post deleted:', postId);
         loadPosts(); // Reload the posts after deleting one
+    })
+    .catch(error => console.error('Error:', error));  // If an error occurs, log it to the console
+}
+
+// Function to send a POST request to the API to like a post
+function likePost(postId) {
+    var baseUrl = document.getElementById('api-base-url').value;
+
+    // Use the Fetch API to send a DELETE request to the specific post's endpoint
+    fetch(baseUrl + '/like/' + postId, {
+        method: 'POST'
+    })
+    .then(response => {
+        console.log('Post liked:', postId);
+        loadPosts(); // Reload the posts after liking one
     })
     .catch(error => console.error('Error:', error));  // If an error occurs, log it to the console
 }

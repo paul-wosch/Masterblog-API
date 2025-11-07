@@ -146,6 +146,38 @@
           }
         }
       }
+    },
+    "/api/like/{id}": {
+      "post": {
+        "summary": "Like a post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID of the post to like"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post liked successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Post" },
+                "example": {
+                  "id": 1,
+                  "title": "My first post",
+                  "content": "Hello world!",
+                  "author": "Alice",
+                  "likes": 5
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
     }
   },
   "components": {

@@ -76,9 +76,7 @@ body {
 
 .post button {
     position: absolute;
-    top: 10px;
     right: 10px;
-    background-color: #ff4444;
     color: #fff;
     border: none;
     padding: 5px 10px;
@@ -86,6 +84,45 @@ body {
     cursor: pointer;
 }
 
-.post button:hover {
+.post button#delete-button {
+    top: 10px;
+    background-color: #ff4444;
+}
+
+.post button#delete-button:hover {
     background-color: #cc0000;
+}
+
+.post button#like-button {
+    top: 50px;
+    background-color: #f23ead;
+}
+
+.post button#like-button:hover {
+    background-color: #c52983;
+}
+
+p.likes-counter {
+    position: relative;
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: #fff;
+    z-index: 1;
+    width: 45px;
+    text-align: center;
+}
+
+p.likes-counter::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    background: url("pink_heart_apple.png") no-repeat center;
+    background-size: contain;
+    pointer-events: none;
+    z-index: -1;
 }

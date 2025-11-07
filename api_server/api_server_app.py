@@ -180,6 +180,23 @@ def search():
     return jsonify(posts_filtered)
 
 
+@app.route("/api/like/<int:post_id>", methods=["POST"])
+def like(post_id):
+    """Provide API endpoint to like a post.
+
+    Return success message and status 200
+    otherwise error message and status 404.
+    """
+    post_obj = get_post_obj(post_id)
+    if post_obj is not None:
+        my_blog.like(post_id=post_id)
+        return jsonify(post_obj.get()), 200
+    # Respond with custom 404 error if post does not exist
+    response = POST_NOT_FOUND_RESPONSE.copy()
+    response["message"] = response["message"].format(post_id=post_id)
+    return jsonify(response), 404
+
+
 # ---------------------------------------------------------------------
 # Error handler
 # ---------------------------------------------------------------------
