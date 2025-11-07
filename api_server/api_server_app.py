@@ -5,6 +5,7 @@ from flask_cors import CORS
 from masterblog_core import Blog, Post
 from api_server_config import BLOG_FILE_PATH, SEQUENCE_FILE_PATH
 
+POST_KEY_ORDER = ["id", "title", "content", "author", "likes"]
 MANDATORY_FIELDS = {"author", "title", "content"}
 SORT_FIELDS = MANDATORY_FIELDS
 SORT_DIRECTIONS = {"asc": False, "desc": True}
@@ -15,6 +16,7 @@ POST_NOT_FOUND_RESPONSE = {"error": "Not Found",
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
+app.json.sort_keys = False # Deactivate alphabetical key sort
 
 my_blog = Blog(blog_file_path=BLOG_FILE_PATH, seq_file_path=SEQUENCE_FILE_PATH)
 
@@ -199,6 +201,16 @@ def sort_posts(posts, field, reverse=False):
     """Sort posts by the given field in ascending or descending order."""
     posts_sorted = list(sorted(posts, key=itemgetter(field.lower()), reverse=reverse))
     return posts_sorted
+
+
+def std_key_order_for_posts(posts: list[dict]):
+    """Return a list of post with reordered keys for each post."""
+    return [std_key_order_for_single_post(post) for post in posts]
+
+
+def std_key_order_for_single_post(post: dict):
+    """Return a rebuild post dictionary with preferred order."""
+    return {key: post[key] for key in POST_KEY_ORDER if key in post}
 
 
 if __name__ == '__main__':
