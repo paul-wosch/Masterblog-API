@@ -92,6 +92,23 @@ def update(post_id):
     return jsonify(response), 404
 
 
+@app.route('/api/posts/search', methods=['GET'])
+def search():
+    """Provide API endpoint to search for posts.
+
+    Params are 'content', 'title' and 'author'.
+    Return a list of posts that match the search criteria.
+    """
+    # Set missing arguments to an empty string
+    title = request.args.get("title") or ""
+    content = request.args.get("content") or ""
+    author = request.args.get("author") or ""
+    # Filter posts
+    posts = my_blog.get_posts()
+    posts_filtered = filter_posts(posts, title, content, author)
+    return jsonify(posts_filtered)
+
+
 # ---------------------------------------------------------------------
 # Error handler
 # ---------------------------------------------------------------------
@@ -124,6 +141,15 @@ def get_post_obj(post_id):
         return None
     return post_obj
 
+
+def filter_posts(posts,  title="", content="", author=""):
+    """Return a filtered list of posts."""
+    posts_filtered = [post for post in posts
+                      if title.lower() in post.get("title").lower()
+                      and content.lower() in post.get("content").lower()
+                      and author.lower() in post.get("author").lower()
+                      ]
+    return posts_filtered
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5002, debug=True)
