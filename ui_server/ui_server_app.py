@@ -1,3 +1,4 @@
+"""Provide the UI server."""
 from flask import Flask, render_template
 
 app = Flask(__name__)
@@ -5,6 +6,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def home():
+    """Provide the home route and return the index template."""
     return render_template("index.html")
 
 

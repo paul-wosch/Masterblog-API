@@ -1,10 +1,11 @@
+"""Provide the API server."""
 from operator import itemgetter
 
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 
-from masterblog_core import Blog, Post
+from masterblog_core import Blog
 from api_server_config import BLOG_FILE_PATH, SEQUENCE_FILE_PATH
 
 # ---------------------------------------------------------------------
@@ -201,7 +202,8 @@ def like(post_id):
 # Error handler
 # ---------------------------------------------------------------------
 @app.errorhandler(404)
-def page_not_found(error):
+def page_not_found(_error):
+    """Handle 404 'Not Found' errors by returning a custom JSON response."""
     response = {
         "error": "Not Found",
         "message": "The requested ressource does not exist.",
@@ -211,7 +213,8 @@ def page_not_found(error):
 
 
 @app.errorhandler(400)
-def page_not_found(error):
+def bad_request(_error):
+    """Handle 400 'Bad Request' errors by returning a custom JSON response."""
     response = {
         "error": "Bad Request",
         "message": "Failed to decode JSON object.",
